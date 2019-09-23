@@ -35,6 +35,8 @@ class GA(object):
         :return total_distance:  ndarray, (pop_SIZE, )
         """
         total_distance = np.empty((line_x.shape[0],), dtype=np.float64)
+        line_x = np.column_stack([line_x, line_x[:, 0]])
+        line_y = np.column_stack([line_y, line_y[:, 0]])
         for i, (xs, ys) in enumerate(zip(line_x, line_y)):
             total_distance[i] = np.sum(np.sqrt(np.square(np.diff(xs)) + np.square(np.diff(ys))))
         fitness = np.exp(self.DNA_size * 2 / total_distance)
