@@ -5,8 +5,8 @@ log = Logger('all.log', level='info')
 
 CROSS_RATE = 0.1        # 交叉概率
 MUTATE_RATE = 0.02      # 突变概率
-POP_SIZE = 500          # 种群大小
-N_GENERATIONS = 500     # 迭代轮数
+POP_SIZE = 20          # 种群大小
+N_GENERATIONS = 5000     # 迭代轮数
 DATA_SET = 'eil51'      # 从10个数据集中选择使用其中一个，在这里写数据集的名字即可
 
 
@@ -22,4 +22,4 @@ for generation in range(N_GENERATIONS):
     if generation == 0 or generation % 10 == 9:
         log.logger.info('正在进行第{}轮迭代'.format(str(generation + 1)))
         log.logger.info('当前种群中表现最多的总路程{}'.format(str(max(set(total_distance.tolist()), key=total_distance.tolist().count))))
-    ga.evolve(fitness)
+    ga.evolve_elitism(fitness)

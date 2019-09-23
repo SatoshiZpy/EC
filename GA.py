@@ -27,6 +27,13 @@ class GA(object):
         return line_x, line_y
 
     def get_fitness(self, line_x, line_y):
+        """
+        获取当前群体的适应度
+        :param line_x:
+        :param line_y:
+        :return fitness: ndarray, (pop_SIZE, )
+        :return total_distance:  ndarray, (pop_SIZE, )
+        """
         total_distance = np.empty((line_x.shape[0],), dtype=np.float64)
         for i, (xs, ys) in enumerate(zip(line_x, line_y)):
             total_distance[i] = np.sum(np.sqrt(np.square(np.diff(xs)) + np.square(np.diff(ys))))
@@ -64,10 +71,14 @@ class GA(object):
         """
         精英主义选择策略
         :param fitness:
-        :return:
+        :return best: 适应度最高的个体，不参与这代的遗传操作  (1, DNA_SIZE)
+        :return other_pop: 其他个体，参与这代的遗传操作 (POP_SIZE - 1, DNA_SIZE)
         """
         # TODO Zongwei
-        pass
+        best_idx = np.argmax(fitness)
+        best = self.pop[best_idx, :]
+        other_pop = np.delete(self.pop, best_idx, axis=0)
+        return best, other_pop
 
     def crossover_n_points(self, parent, pop):
         """
@@ -77,7 +88,7 @@ class GA(object):
         :return:
         """
         if np.random.rand() < self.cross_rate:
-            i_ = np.random.randint(0, self.pop_size, size=1)                        # select another individual from pop
+            i_ = np.random.randint(0, pop.shape[0], size=1)                         # select another individual from pop
             cross_points = np.random.randint(0, 2, self.DNA_size).astype(np.bool)   # choose crossover points
             keep_city = parent[~cross_points]                                       # find the city number
             swap_city = pop[i_, np.isin(pop[i_].ravel(), keep_city, invert=True)]
@@ -173,3 +184,12 @@ class GA(object):
             child = self.mutate_swap(child)
             parent[:] = child
         self.pop = pop
+
+    def evolve_elitism(self, fitness):
+        best, other_pop = self.select_elitism(fitness)
+        pop_copy = other_pop.copy()
+        for parent in other_pop:  # for every parent
+            child = self.crossover_n_points(parent, pop_copy)
+            child = self.mutate_swap(child)
+            parent[:] = child
+        self.pop = np.vstack([best, other_pop])
