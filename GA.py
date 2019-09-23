@@ -1,5 +1,5 @@
 import numpy as np
-
+import copy
 
 class GA(object):
     def __init__(self, DNA_size, cross_rate, mutation_rate, pop_size, ):
@@ -93,7 +93,23 @@ class GA(object):
         :return:
         """
         # TODO Yanmei
-        return parent
+        mum = copy.deepcopy(parent)
+        np.random.shuffle(copy.deepcopy(pop))
+        dad = copy.deepcopy(pop[1])
+        
+        if np.random.random() > self.cross_rate or (mum == dad).all():
+            return mum
+        
+        begin = np.random.randint(0, len(mum) - 2)
+        end = np.random.randint(begin + 1, len(mum) - 1)
+        for pos in range(begin, end):
+            gene1 = mum[pos]
+            gene2 = dad[pos]
+            if gene1 != gene2:
+                posGene1 = np.where(mum == gene1)
+                posGene2 = np.where(mum == gene2)
+                mum[posGene1],mum[posGene2] = mum[posGene2],mum[posGene1]
+        return mum
 
     def crossover_cycle(self, parent, pop):
         """
@@ -159,7 +175,7 @@ class GA(object):
         pop = self.select_fittness(fitness)
         pop_copy = pop.copy()
         for parent in pop:  # for every parent
-            child = self.crossover_n_points(parent, pop_copy)
+            child = self.crossover_PMX(parent, pop_copy)
             child = self.mutate_swap(child)
             parent[:] = child
         self.pop = pop
