@@ -103,8 +103,9 @@ class GA(object):
         :return:
         """
         # TODO Peiyu
+        children = parent
         if np.random.rand() < self.cross_rate:
-            child = [0] * self.DNA_size
+            children = [0] * self.DNA_size
             i_ = np.random.randint(0, self.pop_size)
             tmpA = {}
             tmpB = {}
@@ -131,7 +132,8 @@ class GA(object):
                         cycle.append(parent[position_control])
                         tmpA[position_control] = True
                         tmpB[position_control] = True
-                        position_control = pop[i_].index(parent[position_control])
+                        array = pop[i_].tolist()
+                        position_control = array.index(parent[position_control])
                     else:
                         cycleComplete = True
                         position_control = -1
@@ -143,17 +145,19 @@ class GA(object):
             for cycle_to_process in cycles[:]:
                 if a_to_a_crossover:
                     for key in cycle_to_process[:]:
-                        insert_position = parent.index[key]
-                        del child[insert_position]
-                        child.insert(insert_position, key)
+                        array = parent.tolist()
+                        insert_position = array.index(key)
+                        del children[insert_position]
+                        children.insert(insert_position, key)
                         a_to_a_crossover = False
                 else:
                     for key in cycle_to_process[:]:
-                        insert_position = pop[i_].index[key]
-                        del child[insert_position]
-                        child.insert(insert_position, key)
+                        array = pop[i_].tolist()
+                        insert_position = array.index(key)
+                        del children[insert_position]
+                        children.insert(insert_position, key)
                         a_to_a_crossover = True
-        return child
+        return children
 
     def crossover_edge(self, parent, pop):
         """
@@ -209,7 +213,7 @@ class GA(object):
         pop = self.select_fittness(fitness)
         pop_copy = pop.copy()
         for parent in pop:  # for every parent
-            child = self.crossover_n_points(parent, pop_copy)
+            child = self.crossover_cycle(parent, pop_copy)
             child = self.mutate_swap(child)
             parent[:] = child
         self.pop = pop
