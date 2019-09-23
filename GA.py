@@ -45,11 +45,20 @@ class GA(object):
     def select_tournament(self, fitness):
         """
         锦标赛选择策略
-        :param fitness:
-        :return:
+        :param fitness: ndarray, (pop_SIZE, )
+        :return: ndarray ,(pop_SIZE, DNA_SIZE)
         """
         # TODO Zongwei
-        pass
+        selected_pop = np.empty_like(self.pop, dtype=np.uint8)
+        for tour_time in range(self.pop_size):
+            compete_idx = np.random.choice(np.arange(self.pop_size), size=2, replace=True)
+            compete_idx1, compete_idx2 = compete_idx[0], compete_idx[1]
+            if fitness[compete_idx1] > fitness[compete_idx2]:
+                winner_idx = compete_idx1
+            else:
+                winner_idx = compete_idx2
+            selected_pop[tour_time, :] = self.pop[winner_idx, :]
+        return selected_pop
 
     def select_elitism(self, fitness):
         """
@@ -156,7 +165,8 @@ class GA(object):
         return child
 
     def evolve(self, fitness):
-        pop = self.select_fittness(fitness)
+        # pop = self.select_fittness(fitness)
+        pop = self.select_tournament(fitness)
         pop_copy = pop.copy()
         for parent in pop:  # for every parent
             child = self.crossover_n_points(parent, pop_copy)
