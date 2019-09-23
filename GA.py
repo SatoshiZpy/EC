@@ -3,12 +3,12 @@ import numpy as np
 
 class GA(object):
     def __init__(self, DNA_size, cross_rate, mutation_rate, pop_size, ):
-        self.DNA_size = DNA_size
+        self.DNA_size = DNA_size    # 等于城市数
         self.cross_rate = cross_rate
         self.mutate_rate = mutation_rate
         self.pop_size = pop_size
-
-        self.pop = np.vstack([np.random.permutation(DNA_size) for _ in range(pop_size)])
+        # pop为种群矩阵，大小为（POP_SIZE， N_CITIES），城市编号从1开始
+        self.pop = np.vstack([np.random.permutation([__ for __ in range(1, DNA_size + 1)]) for _ in range(pop_size)])
 
     def translateDNA(self, DNA, city_position):     # get cities' coord in order
         """
@@ -21,7 +21,7 @@ class GA(object):
         line_x = np.empty_like(DNA, dtype=np.float64)
         line_y = np.empty_like(DNA, dtype=np.float64)
         for i, d in enumerate(DNA):
-            city_coord = city_position[d]
+            city_coord = city_position[d - 1]
             line_x[i, :] = city_coord[:, 0]
             line_y[i, :] = city_coord[:, 1]
         return line_x, line_y
