@@ -103,7 +103,57 @@ class GA(object):
         :return:
         """
         # TODO Peiyu
-        return parent
+        if np.random.rand() < self.cross_rate:
+            child = [0] * self.DNA_size
+            i_ = np.random.randint(0, self.pop_size)
+            tmpA = {}
+            tmpB = {}
+            cycles = []
+
+            for i in range(0, self.DNA_size):
+                tmpA[i] = False
+                tmpB[i] = False
+            cycle = []
+            cycleComplete = False
+            position_control = 0
+
+            while False in tmpA.values():
+                cycleComplete = False
+                if position_control == -1:
+                    position_control = 0
+                    for key, values in tmpA.items():
+                        if values == False:
+                            break
+                        else:
+                            position_control += 1
+                while not cycleComplete:
+                    if not tmpA[position_control]:
+                        cycle.append(parent[position_control])
+                        tmpA[position_control] = True
+                        tmpB[position_control] = True
+                        position_control = pop[i_].index(parent[position_control])
+                    else:
+                        cycleComplete = True
+                        position_control = -1
+                        cycles.append(cycle.copy())
+                        cycle = []
+            # Now to cross over , to do this we will loop on out cycles and
+            # alternating between A to A, B to B and A to B and B to A copies.
+            a_to_a_crossover = True
+            for cycle_to_process in cycles[:]:
+                if a_to_a_crossover:
+                    for key in cycle_to_process[:]:
+                        insert_position = parent.index[key]
+                        del child[insert_position]
+                        child.insert(insert_position, key)
+                        a_to_a_crossover = False
+                else:
+                    for key in cycle_to_process[:]:
+                        insert_position = pop[i_].index[key]
+                        del child[insert_position]
+                        child.insert(insert_position, key)
+                        a_to_a_crossover = True
+        return child
 
     def crossover_edge(self, parent, pop):
         """
