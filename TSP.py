@@ -6,7 +6,7 @@ log = Logger('all.log', level='info')
 
 CROSS_RATE = 0.1        # 交叉概率
 MUTATE_RATE = 0.02      # 突变概率
-POP_SIZE = 20          # 种群大小
+POP_SIZE = 10          # 种群大小
 N_GENERATIONS = 20000     # 迭代轮数
 DATA_SET = 'KROC100'      # 从10个数据集中选择使用其中一个，在这里写数据集的名字即可
 
@@ -22,8 +22,8 @@ for generation in range(N_GENERATIONS):
     distance_list = total_distance.tolist()
     ga.evolve_elitism(fitness)
     if generation % 100 == 99:
-        log.logger.info('正在进行第{}轮迭代'.format(str(generation + 1)))
-        log.logger.info('The best fitness in the current population is {}'.format(str(np.max(fitness))))
+        print('正在进行第{}轮迭代'.format(str(generation + 1)))
+        log.log_write('Generation {}, the best fitness in the current population is {}'.format(str(generation + 1), str(np.max(fitness))))
     if generation == 4999 or generation == 9999 or generation == 19999:
         best_distance = np.min(total_distance)
         best_route = ga.pop[np.argmin(total_distance)]

@@ -79,7 +79,9 @@ class GA(object):
         """
         # TODO Zongwei
         best_idx = np.argmax(fitness)
+        worst_idx = np.argmin(fitness)
         best = self.pop[best_idx, :]
+        self.pop[worst_idx, :] = best
         other_pop = np.delete(self.pop, best_idx, axis=0)
         return best, other_pop
 
@@ -163,7 +165,7 @@ class GA(object):
         children = parent
         if np.random.rand() < self.cross_rate:
             children = [0] * self.DNA_size
-            i_ = np.random.randint(0, self.pop_size)
+            i_ = np.random.randint(0, pop.shape[0] - 1)
             tmpA = {}
             tmpB = {}
             cycles = []
@@ -295,7 +297,7 @@ class GA(object):
         best, other_pop = self.select_elitism(fitness)
         pop_copy = other_pop.copy()
         for parent in other_pop:  # for every parent
-            child = self.crossover_n_points(parent, pop_copy)
-            child = self.mutate_swap(child)
+            child = self.crossover_cycle(parent, pop_copy)
+            child = self.mutate_scramble(child)
             parent[:] = child
         self.pop = np.vstack([best, other_pop])
