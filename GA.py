@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 
 class GA(object):
@@ -104,8 +105,26 @@ class GA(object):
         :param pop:
         :return:
         """
-        # TODO Xunshuai
-        return parent
+        child = parent
+        if np.random.rand() < self.cross_rate:
+            i_ = np.random.randint(0, self.pop_size)
+            parent2 = pop[i_]
+            point1 = np.random.randint(0, self.DNA_size)
+            point2 = np.random.randint(point1, self.DNA_size)
+            child = parent2[point1: point2]
+            for i in range(point2, self.DNA_size):
+                tmpA = parent2[i]
+                if tmpA in child:
+                    i += 1
+                else:
+                    child = np.append(child, tmpA)
+            for j in range(0, point2):
+                tmpB = parent2[j]
+                if tmpB in child:
+                    j += 1
+                else:
+                    child = np.append(child, tmpB)
+        return child
 
     def crossover_PMX(self, parent, pop):
         """
@@ -115,7 +134,23 @@ class GA(object):
         :return:
         """
         # TODO Yanmei
-        return parent
+        mum = copy.deepcopy(parent)
+        np.random.shuffle(copy.deepcopy(pop))
+        dad = copy.deepcopy(pop[1])
+
+        if np.random.random() > self.cross_rate or (mum == dad).all():
+            return mum
+
+        begin = np.random.randint(0, len(mum) - 2)
+        end = np.random.randint(begin + 1, len(mum) - 1)
+        for pos in range(begin, end):
+            gene1 = mum[pos]
+            gene2 = dad[pos]
+            if gene1 != gene2:
+                posGene1 = np.where(mum == gene1)
+                posGene2 = np.where(mum == gene2)
+                mum[posGene1], mum[posGene2] = mum[posGene2], mum[posGene1]
+        return mum
 
     def crossover_cycle(self, parent, pop):
         """
@@ -125,7 +160,61 @@ class GA(object):
         :return:
         """
         # TODO Peiyu
-        return parent
+        children = parent
+        if np.random.rand() < self.cross_rate:
+            children = [0] * self.DNA_size
+            i_ = np.random.randint(0, self.pop_size)
+            tmpA = {}
+            tmpB = {}
+            cycles = []
+
+            for i in range(0, self.DNA_size):
+                tmpA[i] = False
+                tmpB[i] = False
+            cycle = []
+            cycleComplete = False
+            position_control = 0
+
+            while False in tmpA.values():
+                cycleComplete = False
+                if position_control == -1:
+                    position_control = 0
+                    for key, values in tmpA.items():
+                        if values == False:
+                            break
+                        else:
+                            position_control += 1
+                while not cycleComplete:
+                    if not tmpA[position_control]:
+                        cycle.append(parent[position_control])
+                        tmpA[position_control] = True
+                        tmpB[position_control] = True
+                        array = pop[i_].tolist()
+                        position_control = array.index(parent[position_control])
+                    else:
+                        cycleComplete = True
+                        position_control = -1
+                        cycles.append(cycle.copy())
+                        cycle = []
+            # Now to cross over , to do this we will loop on out cycles and
+            # alternating between A to A, B to B and A to B and B to A copies.
+            a_to_a_crossover = True
+            for cycle_to_process in cycles[:]:
+                if a_to_a_crossover:
+                    for key in cycle_to_process[:]:
+                        array = parent.tolist()
+                        insert_position = array.index(key)
+                        del children[insert_position]
+                        children.insert(insert_position, key)
+                        a_to_a_crossover = False
+                else:
+                    for key in cycle_to_process[:]:
+                        array = pop[i_].tolist()
+                        insert_position = array.index(key)
+                        del children[insert_position]
+                        children.insert(insert_position, key)
+                        a_to_a_crossover = True
+        return children
 
     def crossover_edge(self, parent, pop):
         """
@@ -156,7 +245,12 @@ class GA(object):
         :param child:
         :return:
         """
-        # TODO Xunshuai
+        for point in range(self.DNA_size):
+            if np.random.rand() < self.mutate_rate:
+                insert_point = np.random.randint(point, self.DNA_size)
+                tmp = child[insert_point]
+                child = np.delete(child, [insert_point])
+                child = np.insert(child, point, [tmp])
         return child
 
     def mutate_inversion(self, child):
@@ -165,7 +259,12 @@ class GA(object):
         :param child:
         :return:
         """
-        # TODO Xunshuai
+        for point in range(self.DNA_size):
+            if np.random.rand() < self.mutate_rate:
+                point2 = np.random.randint(point, self.DNA_size)
+                c = child[point: point2]
+                c = c[::-1]
+                child[point: point2] = c[:]
         return child
 
     def mutate_scramble(self, child):
@@ -174,7 +273,12 @@ class GA(object):
         :param child:
         :return:
         """
-        # TODO Xunshuai
+        for point in range(self.DNA_size):
+            if np.random.rand() < self.mutate_rate:
+                point2 = np.random.randint(point, self.DNA_size)
+                c = child[point: point2]
+                np.random.shuffle(c)
+                child[point: point2] = c[:]
         return child
 
     def evolve(self, fitness):
