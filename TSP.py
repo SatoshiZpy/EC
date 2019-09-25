@@ -2,7 +2,7 @@ from GA import GA
 from TravelSalesPerson import TravelSalesPerson
 from Logger import Logger
 import numpy as np
-log = Logger('C-KROC100-50.log', level='info')
+log = Logger('test.log', level='info')
 
 import datetime
 
@@ -36,5 +36,13 @@ for generation in range(N_GENERATIONS):
         print('当前种群中表现最佳的路径{}'.format(out_best_route))
     if generation == 9999:
         endtime = datetime.datetime.now()
+    if (datetime.datetime.now() - starttime).seconds > 8 * 60 * 60:
+        best_distance = np.min(total_distance)
+        best_route = ga.pop[np.argmin(total_distance)]
+        out_best_route = '-'.join(map(str, best_route.tolist()))    # 加上分隔符输出
+        print('程序进行了8小时，停止迭代')
+        print('当前代数{}，最佳总路程{}，最佳适应度{}'.format(str(generation), str(best_distance), str(np.max(fitness))))
+        print('当前最优路径{}'.format(out_best_route))
+        exit()
 
 print('10000代程序运行时间：{}秒'.format((endtime - starttime).seconds))
