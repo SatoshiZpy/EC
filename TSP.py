@@ -2,11 +2,15 @@ from GA import GA
 from TravelSalesPerson import TravelSalesPerson
 from Logger import Logger
 import numpy as np
-log = Logger('all.log', level='info')
+log = Logger('C-KROC100-50.log', level='info')
+
+import datetime
+
+starttime = datetime.datetime.now()
 
 CROSS_RATE = 0.1        # 交叉概率
 MUTATE_RATE = 0.02      # 突变概率
-POP_SIZE = 10          # 种群大小
+POP_SIZE = 10         # 种群大小
 N_GENERATIONS = 20000     # 迭代轮数
 DATA_SET = 'KROC100'      # 从10个数据集中选择使用其中一个，在这里写数据集的名字即可
 
@@ -30,3 +34,7 @@ for generation in range(N_GENERATIONS):
         out_best_route = '-'.join(map(str, best_route.tolist()))    # 加上分隔符输出
         print('当前种群中表现最佳的总路程{}'.format(str(best_distance)))
         print('当前种群中表现最佳的路径{}'.format(out_best_route))
+
+endtime = datetime.datetime.now()
+
+print('程序运行时间：{}秒'.format((endtime - starttime).seconds))

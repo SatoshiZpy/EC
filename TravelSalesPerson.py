@@ -1,6 +1,6 @@
 import numpy as np
 from Logger import Logger
-log = Logger('all.log', level='info')
+log = Logger('C-KROC100-20.log', level='info')
 
 
 class TravelSalesPerson(object):

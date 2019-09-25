@@ -165,7 +165,7 @@ class GA(object):
         children = parent
         if np.random.rand() < self.cross_rate:
             children = [0] * self.DNA_size
-            i_ = np.random.randint(0, pop.shape[0] - 1)
+            i_ = np.random.randint(0, pop.shape[0])
             tmpA = {}
             tmpB = {}
             cycles = []
@@ -285,10 +285,10 @@ class GA(object):
 
     def evolve(self, fitness):
         # pop = self.select_fittness(fitness)
-        pop = self.select_tournament(fitness)
+        pop = self.select_fittness(fitness)
         pop_copy = pop.copy()
         for parent in pop:  # for every parent
-            child = self.crossover_n_points(parent, pop_copy)
+            child = self.crossover_order(parent, pop_copy)
             child = self.mutate_swap(child)
             parent[:] = child
         self.pop = pop
