@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 
 class GA(object):
@@ -27,7 +28,16 @@ class GA(object):
         return line_x, line_y
 
     def get_fitness(self, line_x, line_y):
+        """
+        获取当前群体的适应度
+        :param line_x:
+        :param line_y:
+        :return fitness: ndarray, (pop_SIZE, )
+        :return total_distance:  ndarray, (pop_SIZE, )
+        """
         total_distance = np.empty((line_x.shape[0],), dtype=np.float64)
+        line_x = np.column_stack([line_x, line_x[:, 0]])
+        line_y = np.column_stack([line_y, line_y[:, 0]])
         for i, (xs, ys) in enumerate(zip(line_x, line_y)):
             total_distance[i] = np.sum(np.sqrt(np.square(np.diff(xs)) + np.square(np.diff(ys))))
         fitness = np.exp(self.DNA_size * 2 / total_distance)
@@ -45,20 +55,33 @@ class GA(object):
     def select_tournament(self, fitness):
         """
         锦标赛选择策略
-        :param fitness:
-        :return:
+        :param fitness: ndarray, (pop_SIZE, )
+        :return: ndarray ,(pop_SIZE, DNA_SIZE)
         """
         # TODO Zongwei
-        pass
+        selected_pop = np.empty_like(self.pop, dtype=np.uint8)
+        for tour_time in range(self.pop_size):
+            compete_idx = np.random.choice(np.arange(self.pop_size), size=2, replace=True)
+            compete_idx1, compete_idx2 = compete_idx[0], compete_idx[1]
+            if fitness[compete_idx1] > fitness[compete_idx2]:
+                winner_idx = compete_idx1
+            else:
+                winner_idx = compete_idx2
+            selected_pop[tour_time, :] = self.pop[winner_idx, :]
+        return selected_pop
 
     def select_elitism(self, fitness):
         """
         精英主义选择策略
         :param fitness:
-        :return:
+        :return best: 适应度最高的个体，不参与这代的遗传操作  (1, DNA_SIZE)
+        :return other_pop: 其他个体，参与这代的遗传操作 (POP_SIZE - 1, DNA_SIZE)
         """
         # TODO Zongwei
-        pass
+        best_idx = np.argmax(fitness)
+        best = self.pop[best_idx, :]
+        other_pop = np.delete(self.pop, best_idx, axis=0)
+        return best, other_pop
 
     def crossover_n_points(self, parent, pop):
         """
@@ -68,7 +91,7 @@ class GA(object):
         :return:
         """
         if np.random.rand() < self.cross_rate:
-            i_ = np.random.randint(0, self.pop_size, size=1)                        # select another individual from pop
+            i_ = np.random.randint(0, pop.shape[0], size=1)                         # select another individual from pop
             cross_points = np.random.randint(0, 2, self.DNA_size).astype(np.bool)   # choose crossover points
             keep_city = parent[~cross_points]                                       # find the city number
             swap_city = pop[i_, np.isin(pop[i_].ravel(), keep_city, invert=True)]
@@ -82,8 +105,26 @@ class GA(object):
         :param pop:
         :return:
         """
-        # TODO Xunshuai
-        return parent
+        child = parent
+        if np.random.rand() < self.cross_rate:
+            i_ = np.random.randint(0, self.pop_size)
+            parent2 = pop[i_]
+            point1 = np.random.randint(0, self.DNA_size)
+            point2 = np.random.randint(point1, self.DNA_size)
+            child = parent2[point1: point2]
+            for i in range(point2, self.DNA_size):
+                tmpA = parent2[i]
+                if tmpA in child:
+                    i += 1
+                else:
+                    child = np.append(child, tmpA)
+            for j in range(0, point2):
+                tmpB = parent2[j]
+                if tmpB in child:
+                    j += 1
+                else:
+                    child = np.append(child, tmpB)
+        return child
 
     def crossover_PMX(self, parent, pop):
         """
@@ -93,7 +134,23 @@ class GA(object):
         :return:
         """
         # TODO Yanmei
-        return parent
+        mum = copy.deepcopy(parent)
+        np.random.shuffle(copy.deepcopy(pop))
+        dad = copy.deepcopy(pop[1])
+
+        if np.random.random() > self.cross_rate or (mum == dad).all():
+            return mum
+
+        begin = np.random.randint(0, len(mum) - 2)
+        end = np.random.randint(begin + 1, len(mum) - 1)
+        for pos in range(begin, end):
+            gene1 = mum[pos]
+            gene2 = dad[pos]
+            if gene1 != gene2:
+                posGene1 = np.where(mum == gene1)
+                posGene2 = np.where(mum == gene2)
+                mum[posGene1], mum[posGene2] = mum[posGene2], mum[posGene1]
+        return mum
 
     def crossover_cycle(self, parent, pop):
         """
@@ -103,7 +160,61 @@ class GA(object):
         :return:
         """
         # TODO Peiyu
-        return parent
+        children = parent
+        if np.random.rand() < self.cross_rate:
+            children = [0] * self.DNA_size
+            i_ = np.random.randint(0, self.pop_size)
+            tmpA = {}
+            tmpB = {}
+            cycles = []
+
+            for i in range(0, self.DNA_size):
+                tmpA[i] = False
+                tmpB[i] = False
+            cycle = []
+            cycleComplete = False
+            position_control = 0
+
+            while False in tmpA.values():
+                cycleComplete = False
+                if position_control == -1:
+                    position_control = 0
+                    for key, values in tmpA.items():
+                        if values == False:
+                            break
+                        else:
+                            position_control += 1
+                while not cycleComplete:
+                    if not tmpA[position_control]:
+                        cycle.append(parent[position_control])
+                        tmpA[position_control] = True
+                        tmpB[position_control] = True
+                        array = pop[i_].tolist()
+                        position_control = array.index(parent[position_control])
+                    else:
+                        cycleComplete = True
+                        position_control = -1
+                        cycles.append(cycle.copy())
+                        cycle = []
+            # Now to cross over , to do this we will loop on out cycles and
+            # alternating between A to A, B to B and A to B and B to A copies.
+            a_to_a_crossover = True
+            for cycle_to_process in cycles[:]:
+                if a_to_a_crossover:
+                    for key in cycle_to_process[:]:
+                        array = parent.tolist()
+                        insert_position = array.index(key)
+                        del children[insert_position]
+                        children.insert(insert_position, key)
+                        a_to_a_crossover = False
+                else:
+                    for key in cycle_to_process[:]:
+                        array = pop[i_].tolist()
+                        insert_position = array.index(key)
+                        del children[insert_position]
+                        children.insert(insert_position, key)
+                        a_to_a_crossover = True
+        return children
 
     def crossover_edge(self, parent, pop):
         """
@@ -134,7 +245,12 @@ class GA(object):
         :param child:
         :return:
         """
-        # TODO Xunshuai
+        for point in range(self.DNA_size):
+            if np.random.rand() < self.mutate_rate:
+                insert_point = np.random.randint(point, self.DNA_size)
+                tmp = child[insert_point]
+                child = np.delete(child, [insert_point])
+                child = np.insert(child, point, [tmp])
         return child
 
     def mutate_inversion(self, child):
@@ -143,7 +259,12 @@ class GA(object):
         :param child:
         :return:
         """
-        # TODO Xunshuai
+        for point in range(self.DNA_size):
+            if np.random.rand() < self.mutate_rate:
+                point2 = np.random.randint(point, self.DNA_size)
+                c = child[point: point2]
+                c = c[::-1]
+                child[point: point2] = c[:]
         return child
 
     def mutate_scramble(self, child):
@@ -152,14 +273,29 @@ class GA(object):
         :param child:
         :return:
         """
-        # TODO Xunshuai
+        for point in range(self.DNA_size):
+            if np.random.rand() < self.mutate_rate:
+                point2 = np.random.randint(point, self.DNA_size)
+                c = child[point: point2]
+                np.random.shuffle(c)
+                child[point: point2] = c[:]
         return child
 
     def evolve(self, fitness):
-        pop = self.select_fittness(fitness)
+        # pop = self.select_fittness(fitness)
+        pop = self.select_tournament(fitness)
         pop_copy = pop.copy()
         for parent in pop:  # for every parent
             child = self.crossover_n_points(parent, pop_copy)
             child = self.mutate_swap(child)
             parent[:] = child
         self.pop = pop
+
+    def evolve_elitism(self, fitness):
+        best, other_pop = self.select_elitism(fitness)
+        pop_copy = other_pop.copy()
+        for parent in other_pop:  # for every parent
+            child = self.crossover_n_points(parent, pop_copy)
+            child = self.mutate_swap(child)
+            parent[:] = child
+        self.pop = np.vstack([best, other_pop])
