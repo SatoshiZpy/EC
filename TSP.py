@@ -21,10 +21,12 @@ for generation in range(N_GENERATIONS):
     fitness, total_distance = ga.get_fitness(lx, ly)
     distance_list = total_distance.tolist()
     ga.evolve_elitism(fitness)
-    if generation == 0 or generation % 10 == 9:
+    if generation % 100 == 99:
         log.logger.info('正在进行第{}轮迭代'.format(str(generation + 1)))
+        log.logger.info('The best fitness in the current population is {}'.format(str(np.max(fitness))))
+    if generation == N_GENERATIONS - 1:
         best_distance = np.min(total_distance)
         best_route = ga.pop[np.argmin(total_distance)]
         out_best_route = '-'.join(map(str, best_route.tolist()))    # 加上分隔符输出
-        log.logger.info('当前种群中表现最佳的总路程{}'.format(str(best_distance)))
-        log.logger.info('当前种群中表现最佳的路径{}'.format(out_best_route))
+        print('当前种群中表现最佳的总路程{}'.format(str(best_distance)))
+        print('当前种群中表现最佳的路径{}'.format(out_best_route))
