@@ -1,6 +1,7 @@
 from GA import GA
 from TravelSalesPerson import TravelSalesPerson
 from Logger import Logger
+import numpy as np
 log = Logger('all.log', level='info')
 
 CROSS_RATE = 0.1        # 交叉概率
@@ -22,4 +23,8 @@ for generation in range(N_GENERATIONS):
     ga.evolve_elitism(fitness)
     if generation == 0 or generation % 10 == 9:
         log.logger.info('正在进行第{}轮迭代'.format(str(generation + 1)))
-        log.logger.info('当前种群中表现最多的总路程{}'.format(str(max(set(total_distance.tolist()), key=total_distance.tolist().count))))
+        best_distance = np.min(total_distance)
+        best_route = ga.pop[np.argmin(total_distance)]
+        out_best_route = '-'.join(map(str, best_route.tolist()))    # 加上分隔符输出
+        log.logger.info('当前种群中表现最佳的总路程{}'.format(str(best_distance)))
+        log.logger.info('当前种群中表现最佳的路径{}'.format(out_best_route))
