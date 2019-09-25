@@ -82,8 +82,26 @@ class GA(object):
         :param pop:
         :return:
         """
-        # TODO Xunshuai
-        return parent
+        child = parent
+        if np.random.rand() < self.cross_rate:
+            i_ = np.random.randint(0, self.pop_size)
+            parent2 = pop[i_]
+            point1 = np.random.randint(0, self.DNA_size)
+            point2 = np.random.randint(point1, self.DNA_size)
+            child = parent2[point1 : point2]
+            for i in range(point2,self.DNA_size):
+                tmpA = parent2[i]
+                if tmpA in child:
+                    i += 1
+                else:
+                    child = np.append(child,tmpA)
+            for j in range(0,point2):
+                tmpB = parent2[j]
+                if tmpB in child:
+                    j += 1
+                else:
+                    child = np.append(child,tmpB)
+        return child              
 
     def crossover_PMX(self, parent, pop):
         """
@@ -134,7 +152,12 @@ class GA(object):
         :param child:
         :return:
         """
-        # TODO Xunshuai
+        for point in range(self.DNA_size):
+            if np.random.rand() < self.mutate_rate:
+                insert_point = np.random.randint(point, self.DNA_size)
+                tmp = child[insert_point]
+                child = np.delete(child,[insert_point])
+                child = np.insert(child, point,[tmp] )
         return child
 
     def mutate_inversion(self, child):
@@ -143,7 +166,12 @@ class GA(object):
         :param child:
         :return:
         """
-        # TODO Xunshuai
+        for point in range(self.DNA_size):
+            if np.random.rand() < self.mutate_rate:
+                point2 = np.random.randint(point, self.DNA_size)
+                c = child[point : point2]
+                c = c[::-1]
+                child[point : point2] = c[:]
         return child
 
     def mutate_scramble(self, child):
@@ -152,7 +180,12 @@ class GA(object):
         :param child:
         :return:
         """
-        # TODO Xunshuai
+        for point in range(self.DNA_size):
+            if np.random.rand() < self.mutate_rate:
+                point2 = np.random.randint(point, self.DNA_size)
+                c = child[point : point2]
+                np.random.shuffle(c)
+                child[point : point2] = c[:]
         return child
 
     def evolve(self, fitness):
@@ -160,6 +193,10 @@ class GA(object):
         pop_copy = pop.copy()
         for parent in pop:  # for every parent
             child = self.crossover_n_points(parent, pop_copy)
+            child = self.crossover_order(parent, pop_copy)
             child = self.mutate_swap(child)
-            parent[:] = child
+            child = self.mutate_insert(child)      
+            child = self.mutate_inversion(child)
+            child = self.mutate_scramble(parent)
+            parent[:] = child 
         self.pop = pop
