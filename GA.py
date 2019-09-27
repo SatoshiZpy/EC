@@ -4,20 +4,20 @@ import copy
 
 class GA(object):
     def __init__(self, DNA_size, cross_rate, mutation_rate, pop_size, ):
-        self.DNA_size = DNA_size    # 等于城市数
+        self.DNA_size = DNA_size    # the numbers of cities
         self.cross_rate = cross_rate
         self.mutate_rate = mutation_rate
         self.pop_size = pop_size
-        # pop为种群矩阵，大小为（POP_SIZE， N_CITIES），城市编号从1开始
+        # pop is the matrix of the population, with size (POP_SIZE， N_CITIES), the city number is from 1
         self.pop = np.vstack([np.random.permutation([__ for __ in range(1, DNA_size + 1)]) for _ in range(pop_size)])
 
     def translateDNA(self, DNA, city_position):     # get cities' coord in order
         """
-        给城市编码
-        :param DNA: 种群矩阵，ndarray，（POP_SIZE， N_CITIES）
-        :param city_position: 城市的横纵坐标矩阵, ndarray, (N_CITIES, 2)
-        :return line_x: 种群走过路线的各城市的横坐标，ndarray，（POP_SIZE， N_CITIES）
-        :return line_y: 种群走过路线的各城市的横坐标，ndarray，（POP_SIZE， N_CITIES）
+        Code all cities
+        :param DNA: the matrix of the population，ndarray，（POP_SIZE， N_CITIES）
+        :param city_position: The Lateral and Longitudinal Coordinate Matrix of a City, ndarray, (N_CITIES, 2)
+        :return line_x: The abscissa of the cities along which the population travels，ndarray，（POP_SIZE， N_CITIES）
+        :return line_y: Longitudinal coordinates of the cities along which the population travels，ndarray，（POP_SIZE， N_CITIES）
         """
         line_x = np.empty_like(DNA, dtype=np.float64)
         line_y = np.empty_like(DNA, dtype=np.float64)
@@ -29,11 +29,11 @@ class GA(object):
 
     def get_fitness(self, line_x, line_y):
         """
-        获取当前群体的适应度
-        :param line_x:
-        :param line_y:
-        :return fitness: ndarray, (pop_SIZE, )
-        :return total_distance:  ndarray, (pop_SIZE, )
+        Obtaining the fitness and the travel distance of the current population
+        :param line_x: The abscissa of the cities along which the population travels，ndarray，（POP_SIZE， N_CITIES）
+        :param line_y: Longitudinal coordinates of the cities along which the population travels，ndarray，（POP_SIZE， N_CITIES）
+        :return fitness: the fitness of the current population, ndarray, (pop_SIZE, )
+        :return total_distance: the travel distance of the current population, ndarray, (pop_SIZE, )
         """
         total_distance = np.empty((line_x.shape[0],), dtype=np.float64)
         line_x = np.column_stack([line_x, line_x[:, 0]])
@@ -45,7 +45,7 @@ class GA(object):
 
     def select_fittness(self, fitness):
         """
-        轮盘赌选择策略
+        The fitness selection
         :param fitness:
         :return:
         """
@@ -54,16 +54,15 @@ class GA(object):
 
     def select_tournament(self, fitness):
         """
-        锦标赛选择策略
-        :param fitness: ndarray, (pop_SIZE, )
+        The tournament selection
+        :param fitness: the fitness of the population, ndarray, (pop_SIZE, )
         :return: ndarray ,(pop_SIZE, DNA_SIZE)
         """
-        # TODO Zongwei
-        selected_pop = np.empty_like(self.pop, dtype=np.uint8)
+        selected_pop = np.empty_like(self.pop, dtype=np.uint8)  # initialize
         for tour_time in range(self.pop_size):
-            compete_idx = np.random.choice(np.arange(self.pop_size), size=2, replace=True)
+            compete_idx = np.random.choice(np.arange(self.pop_size), size=2, replace=True)  # pick 2 members for the tournament
             compete_idx1, compete_idx2 = compete_idx[0], compete_idx[1]
-            if fitness[compete_idx1] > fitness[compete_idx2]:
+            if fitness[compete_idx1] > fitness[compete_idx2]:   # compete 2 members by fitness
                 winner_idx = compete_idx1
             else:
                 winner_idx = compete_idx2
@@ -72,25 +71,24 @@ class GA(object):
 
     def select_elitism(self, fitness):
         """
-        精英主义选择策略
-        :param fitness:
-        :return best: 适应度最高的个体，不参与这代的遗传操作  (1, DNA_SIZE)
-        :return other_pop: 其他个体，参与这代的遗传操作 (POP_SIZE - 1, DNA_SIZE)
+        The elitism selection
+        :param fitness: the fitness of the population, ndarray, (pop_SIZE, )
+        :return best: the individual with best fitness，not involved in genetic manipulation of this generation, ndarray, (1, DNA_SIZE)
+        :return other_pop: other individuals，involved in genetic manipulation of this generation, ndarray, (POP_SIZE - 1, DNA_SIZE)
         """
-        # TODO Zongwei
         best_idx = np.argmax(fitness)
         worst_idx = np.argmin(fitness)
         best = self.pop[best_idx, :]
-        self.pop[worst_idx, :] = best
+        self.pop[worst_idx, :] = best   # Replacing the Worst Individual with the Best Individual
         other_pop = np.delete(self.pop, best_idx, axis=0)
         return best, other_pop
 
     def crossover_n_points(self, parent, pop):
         """
-        n-points交叉策略
-        :param parent:
-        :param pop:
-        :return:
+        The n-points crossover
+        :param parent: one of the parents
+        :param pop: population which contains another parent
+        :return: one child after crossover
         """
         if np.random.rand() < self.cross_rate:
             i_ = np.random.randint(0, pop.shape[0], size=1)                         # select another individual from pop
@@ -102,10 +100,10 @@ class GA(object):
 
     def crossover_order(self, parent, pop):
         """
-        顺序交叉策略
-        :param parent:
-        :param pop:
-        :return:
+        The order crossover
+        :param parent: one of the parents
+        :param pop: population which contains another parent
+        :return: one child after crossover
         """
         child = parent
         if np.random.rand() < self.cross_rate:
@@ -130,12 +128,11 @@ class GA(object):
 
     def crossover_PMX(self, parent, pop):
         """
-        PMX交叉策略
+        The PMX crossover
         :param parent: one of the parents
         :param pop: population which contains another parent
         :return: one child after crossover
         """
-        # TODO Yanmei
         mum = copy.deepcopy(parent)
         np.random.shuffle(copy.deepcopy(pop))
         dad = copy.deepcopy(pop[1])
@@ -160,12 +157,11 @@ class GA(object):
 
     def crossover_cycle(self, parent, pop):
         """
-        循环交叉策略
+        The cycle crossover
         :param parent:
         :param pop:
         :return:
         """
-        # TODO Peiyu
         children = parent
         if np.random.rand() < self.cross_rate:
             children = [0] * self.DNA_size
@@ -226,71 +222,66 @@ class GA(object):
 
     def crossover_edge(self, parent, pop):
         """
-        边缘组合策略
-        :param parent:
-        :param pop:
-        :return:
+        The edge crossover
+        :param parent: one of the parents
+        :param pop: population which contains another parent
+        :return: one child after crossover
         """
-        # TODO Lu
         return parent
 
     def mutate_swap(self, child):
         """
-        交换突变策略
-        :param child:
-        :return:
+        The swap mutation
         """
         for point in range(self.DNA_size):
             if np.random.rand() < self.mutate_rate:
-                swap_point = np.random.randint(0, self.DNA_size)
+                swap_point = np.random.randint(0, self.DNA_size)  #Pick one allele value at random
                 swapA, swapB = child[point], child[swap_point]
-                child[point], child[swap_point] = swapB, swapA
+                child[point], child[swap_point] = swapB, swapA    #Exchange two individual equivalence basis, the rest of the order pending
         return child
 
     def mutate_insert(self, child):
         """
-        插入突变策略
-        :param child:
-        :return:
+        The insert mutation
         """
         for point in range(self.DNA_size):
             if np.random.rand() < self.mutate_rate:
-                insert_point = np.random.randint(point, self.DNA_size)
+                insert_point = np.random.randint(point, self.DNA_size) #Pick one allele value at random
                 tmp = child[insert_point]
-                child = np.delete(child, [insert_point])
-                child = np.insert(child, point, [tmp])
+                child = np.delete(child, [insert_point])               #Delete the value of an allele
+                child = np.insert(child, point, [tmp])                 #Move the second to follow the first,  shifting the rest along to accommodate
         return child
 
     def mutate_inversion(self, child):
         """
-        反转突变策略
-        :param child:
-        :return:
+        The inversion mutation
         """
         for point in range(self.DNA_size):
             if np.random.rand() < self.mutate_rate:
                 point2 = np.random.randint(point, self.DNA_size)
-                c = child[point: point2]
-                c = c[::-1]
+                c = child[point: point2]                        #Pick a subset of genes at random
+                c = c[::-1]                                     # invert the substring between them.
                 child[point: point2] = c[:]
         return child
 
     def mutate_scramble(self, child):
         """
-        征用突变策略
-        :param child:
-        :return:
+        The scramble mutation
         """
         for point in range(self.DNA_size):
             if np.random.rand() < self.mutate_rate:
                 point2 = np.random.randint(point, self.DNA_size)
-                c = child[point: point2]
-                np.random.shuffle(c)
+                c = child[point: point2]                          #Pick a subset of genes at random
+                np.random.shuffle(c)                              #Randomly rearrange the alleles in those positions
                 child[point: point2] = c[:]
         return child
 
     def evolve(self, fitness):
-        # pop = self.select_fittness(fitness)
+        """
+        Each generation, the evolutionary algorithm process for population execution, not using the elitism selection
+        :param fitness: the fitness of the current population, ndarray, (pop_SIZE, )
+        :return: None, update the population after one generation
+        """
         pop = self.select_fittness(fitness)
         pop_copy = pop.copy()
         for parent in pop:  # for every parent
@@ -300,6 +291,11 @@ class GA(object):
         self.pop = pop
 
     def evolve_elitism(self, fitness):
+        """
+        Each generation, the evolutionary algorithm process for population execution, using the elitism selection
+        :param fitness: the fitness of the current population, ndarray, (pop_SIZE, )
+        :return: None, update the population after one generation
+        """
         best, other_pop = self.select_elitism(fitness)
         pop_copy = other_pop.copy()
         for parent in other_pop:  # for every parent
