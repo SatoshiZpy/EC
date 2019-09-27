@@ -13,7 +13,7 @@ Group members：
 薄添博	1170300210 1157513549@qq.com
 
 
-The files：
+File instructions：
 
 TSP.py: The executable program of TSP. We can set some parameters in this file, such as population size, iteration rounds, selected data set, crossover probability and mutation probability.
 
