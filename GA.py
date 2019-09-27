@@ -176,7 +176,9 @@ class GA(object):
             cycle = []
             cycleComplete = False
             position_control = 0
-
+            # two while loops, inner look to create a cycle, then outter loops controls a new cycle loop,
+            # The inner while loop will get run in effect first on the first time processing.
+            # End result is that we should have a list of lists containing  cycles
             while False in tmpA.values():
                 cycleComplete = False
                 if position_control == -1:
