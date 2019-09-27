@@ -29,8 +29,3 @@ class Logger():
         else:
             raise ("日志级别错误")
         self.logger.removeHandler(self.th)  # 日志写入完成后移除handler
-
-
-if __name__ == '__main__':
-    log = Logger("text.log")
-    log.log_write('5555')
