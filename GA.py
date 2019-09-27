@@ -131,9 +131,9 @@ class GA(object):
     def crossover_PMX(self, parent, pop):
         """
         PMX交叉策略
-        :param parent:
-        :param pop:
-        :return:
+        :param parent: one of the parents
+        :param pop: population which contains another parent
+        :return: one child after crossover
         """
         # TODO Yanmei
         mum = copy.deepcopy(parent)
@@ -142,9 +142,13 @@ class GA(object):
 
         if np.random.random() > self.cross_rate or (mum == dad).all():
             return mum
-
+        
+        #select the crossover fragment of the parents 
+        #to use as mapping list
         begin = np.random.randint(0, len(mum) - 2)
         end = np.random.randint(begin + 1, len(mum) - 1)
+        #modify the corresponding number outside the crossover fragment
+        #according to the mapping list
         for pos in range(begin, end):
             gene1 = mum[pos]
             gene2 = dad[pos]
