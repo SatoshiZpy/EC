@@ -112,15 +112,15 @@ class GA(object):
             i_ = np.random.randint(0, self.pop_size)
             parent2 = pop[i_]
             point1 = np.random.randint(0, self.DNA_size)
-            point2 = np.random.randint(point1, self.DNA_size)
-            child = parent2[point1: point2]
-            for i in range(point2, self.DNA_size):
+            point2 = np.random.randint(point1, self.DNA_size)  
+            child = parent2[point1: point2]                  # Choose an arbitrary part from the first parent，Copy this part to the first child 
+            for i in range(point2, self.DNA_size):           #Traverse from the second selected point of the second parent
                 tmpA = parent2[i]
                 if tmpA in child:
                     i += 1
-                else:
-                    child = np.append(child, tmpA)
-            for j in range(0, point2):
+                else:                                        #If the traversal of the gene is not in the child, put it in the child
+                    child = np.append(child, tmpA) 
+            for j in range(0, point2):                       #Traversing from the head of the second parent
                 tmpB = parent2[j]
                 if tmpB in child:
                     j += 1
@@ -176,9 +176,7 @@ class GA(object):
             cycle = []
             cycleComplete = False
             position_control = 0
-            # two while loops, inner look to create a cycle, then outter loops controls a new cycle loop,
-            # The inner while loop will get run in effect first on the first time processing.
-            # End result is that we should have a list of lists containing  cycles
+
             while False in tmpA.values():
                 cycleComplete = False
                 if position_control == -1:
@@ -238,9 +236,9 @@ class GA(object):
         """
         for point in range(self.DNA_size):
             if np.random.rand() < self.mutate_rate:
-                swap_point = np.random.randint(0, self.DNA_size)
+                swap_point = np.random.randint(0, self.DNA_size)  #Pick one allele value at random 
                 swapA, swapB = child[point], child[swap_point]
-                child[point], child[swap_point] = swapB, swapA
+                child[point], child[swap_point] = swapB, swapA    #Exchange two individual equivalence basis, the rest of the order pending
         return child
 
     def mutate_insert(self, child):
@@ -251,10 +249,10 @@ class GA(object):
         """
         for point in range(self.DNA_size):
             if np.random.rand() < self.mutate_rate:
-                insert_point = np.random.randint(point, self.DNA_size)
+                insert_point = np.random.randint(point, self.DNA_size) #Pick one allele value at random 
                 tmp = child[insert_point]
-                child = np.delete(child, [insert_point])
-                child = np.insert(child, point, [tmp])
+                child = np.delete(child, [insert_point])               #Delete the value of an allele
+                child = np.insert(child, point, [tmp])                 #Move the second to follow the first,  shifting the rest along to accommodate
         return child
 
     def mutate_inversion(self, child):
@@ -266,8 +264,8 @@ class GA(object):
         for point in range(self.DNA_size):
             if np.random.rand() < self.mutate_rate:
                 point2 = np.random.randint(point, self.DNA_size)
-                c = child[point: point2]
-                c = c[::-1]
+                c = child[point: point2]                        #Pick a subset of genes at random
+                c = c[::-1]                                     # invert the substring between them. 
                 child[point: point2] = c[:]
         return child
 
@@ -280,8 +278,8 @@ class GA(object):
         for point in range(self.DNA_size):
             if np.random.rand() < self.mutate_rate:
                 point2 = np.random.randint(point, self.DNA_size)
-                c = child[point: point2]
-                np.random.shuffle(c)
+                c = child[point: point2]                          #Pick a subset of genes at random 
+                np.random.shuffle(c)                              #Randomly rearrange the alleles in those positions
                 child[point: point2] = c[:]
         return child
 
